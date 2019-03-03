@@ -69,7 +69,10 @@
     <Compile Include="Assets\Graph\Graph.cs" />
     <Compile Include="Assets\Graph\GraphFunction.cs" />
     <Compile Include="Assets\Graph\GraphFunctionName.cs" />
+    <Compile Include="Assets\Procedural Grid\Grid.cs" />
+    <Compile Include="Assets\Procedural Grid\RoundedCube.cs" />
     <None Include="Assets\Graph\ColoredPoint.shader" />
+    <None Include="Assets\Procedural Grid\RoundedCubeShader.shader" />
     <Reference Include="Unity.TextMeshPro.Editor">
       <HintPath>C:/Users/igor/shaders_stuff/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
     </Reference>
