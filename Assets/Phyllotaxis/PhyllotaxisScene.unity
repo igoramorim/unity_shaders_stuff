@@ -296,7 +296,7 @@ MonoBehaviour:
   _degree: 137.5
   _c: 1
   _n: 0
-  _dotScale: 1
+  _dotScale: 1.5
 --- !u!4 &1790891165
 Transform:
   m_ObjectHideFlags: 0

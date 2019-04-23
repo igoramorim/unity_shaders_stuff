@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/Mandelbrot/MandelbrotScene.unity
+- path: Assets/Raymarching/raymarching.unity
   isLoaded: 1
   isActive: 1
