@@ -20,15 +20,44 @@
 			#include "DistanceFunctions.cginc"
 
 			sampler2D _MainTex;
+			
+			// Setup
 			uniform sampler2D _CameraDepthTexture;
 			uniform float4x4 _CamFrustum, _CamToWorld;
-			uniform float _maxDistance;
-			uniform float4 _sphere1, _sphere2, _box1, _torus1;
-			uniform float3 _modInterval;
-			uniform float3 _LightDir;
-			uniform fixed4 _mainColor;
+			uniform float _MaxDistance;
+			uniform int _MaxIterations;
+			uniform float _Accuracy;
+			
+			// Color
+			uniform fixed4 _MainColor;
 
-            struct appdata
+			// Light
+			uniform float3 _LightDir, _LightCol;
+			uniform float _LightIntensity;
+			
+			// Shadow
+			uniform float2 _ShadowDistance;
+			uniform float _ShadowIntensity, _ShadowPenumbra;
+			
+			// Ambient Occlusion
+			uniform float _AoStepsize, _AoIntensity;
+			uniform int _AoIterations;
+
+			// Reflection
+			uniform int _ReflectionCount;
+			uniform float _ReflectionIntensity;
+			uniform float _EnvReflIntensity;
+			uniform samplerCUBE _ReflectionCube;
+
+			// Signed Distance Field
+			uniform float4 _sphere;
+			uniform float _sphereSmooth;
+			uniform float _degreeRotate;
+			// uniform float4 _sphere1, _sphere2, _box1, _torus1;
+			//uniform float _box1round, _boxSphereSmooth, _sphereIntersectSmooth;
+			// uniform float3 _modInterval;
+            
+			struct appdata
             {
                 float4 vertex : POSITION;
                 float2 uv : TEXCOORD0;
@@ -58,25 +87,35 @@
                 return o;
             }
 
+			/*float BoxSphere(float3 p) {
+				float Sphere1 = sdSphere(p - _sphere1.xyz, _sphere1.w);
+				float Box1 = sdRoundBox(p - _box1.xyz, _box1.www, _box1round);
+				float combine1 = opSS(Sphere1, Box1, _boxSphereSmooth);
+				float Sphere2 = sdSphere(p - _sphere2.xyz, _sphere2.w);
+				float combine2 = opIS(Sphere2, combine1, _sphereIntersectSmooth);
+
+				return combine2;
+			}*/
+
+			float3 RotateY(float3 v, float degree) {
+				float rad = 0.0174532925 * degree;
+				float cosY = cos(rad);
+				float sinY = sin(rad);
+				return float3(cosY * v.x - sinY * v.z, v.y, sinY * v.x + cosY * v.z);
+			}
+
 			float distanceField(float3 p)
 			{
-				float final = 0.0;
+				float ground = sdPlane(p, float4(0, 1, 0, 0));
+				float sphere = sdSphere(p - _sphere.xyz, _sphere.w);
+				for (int i = 1; i < 8; i++) {
+					float sphereAdd = sdSphere(RotateY(p, _degreeRotate * i) - _sphere.xyz, _sphere.w);
+					sphere = opUS(sphere, sphereAdd, _sphereSmooth);
+				}
+				return opU(sphere, ground);
 
-				// float modX = pMod1(p.x, _modInterval.x);
-				// float modY = pMod1(p.y, _modInterval.y);
-				// float modZ = pMod1(p.z, _modInterval.z);
-
-				float Sphere1 = sdSphere(p - _sphere1.xyz, _sphere1.w);
-				float Sphere2 = sdSphere(p - _sphere2.xyz, _sphere2.w);
-				float Box1 = sdBox(p - _box1.xyz, _box1.www);
-				float Torus1 = sdTorus(p - _torus1.xyz, _torus1.yy);
-				
-				// float f1 = opS(Sphere1, Box1);
-				// float f2 = opS(f1, Sphere2);
-				
-				// final = opS(f1, Sphere2);
-				// final = f1;
-				return Sphere1;
+				// float boxSphere1 = BoxSphere(p);
+				//return opU(ground, boxSphere1);
 			}
 
 			float3 getNormal(float3 p)
@@ -91,37 +130,88 @@
 				return normalize(n);
 			}
 
-			fixed4 raymarching(float3 ro, float3 rd, float depth)
+			float hardShadow(float3 ro, float3 rd, float mint, float maxt) {
+				for (float t = mint; t < maxt;) {
+					float h = distanceField(ro + rd * t);
+					// if h < 0 we are inside a distance field object
+					if (h < 0.001) {
+						// shadow
+						return 0.0;
+					}
+					t += h;
+				}
+				return 1.0;
+			}
+
+			float softShadow(float3 ro, float3 rd, float mint, float maxt, float k) {
+				float result = 1.0;
+				for (float t = mint; t < maxt;) {
+					float h = distanceField(ro + rd * t);
+					// if h < 0 we are inside a distance field object
+					if (h < 0.001) {
+						return 0.0;
+					}
+					result = min(result, k*h / t);
+					t += h;
+				}
+				return result;
+			}
+
+			float AmbientOcclusion(float3 p, float3 n) {
+				float step = _AoStepsize;
+				float ao = 0.0;
+				float dist;
+
+				for (int i = 1; i <= _AoIterations; i++) {
+					dist = step * i;
+					ao += max(0.0, (dist - distanceField(p + n * dist)) / dist);
+				}
+				return (1.0 - ao * _AoIntensity);
+			}
+
+			float3 Shading(float3 p, float3 n) {
+				float3 result;
+				
+				// Diffuse Color
+				float3 color = _MainColor.rgb;
+
+				// Directional Light
+				float3 light = (_LightCol *  dot(-_LightDir, n) * 0.5 + 0.5) * _LightIntensity;
+
+				// Shadows
+				float3 shadow = softShadow(p, -_LightDir, _ShadowDistance.x, _ShadowDistance.y, _ShadowPenumbra) * 0.5 + 0.5;
+				shadow = max(0.0, pow(shadow, _ShadowIntensity));
+
+				// Ambient Occlusion
+				float ao = AmbientOcclusion(p, n);
+
+				result = color * light * shadow * ao;
+				return result;
+			}
+
+			bool raymarching(float3 ro, float3 rd, float depth, float maxDistance, int maxIterations, inout float3 p)
 			{
-				fixed4 result = fixed4(1, 1, 1, 1);
-				const int max_iteration = 164;
+				bool hit;
 				float t = 0; // distance travelled along the ray direction
 
-				for (int i = 0; i < max_iteration; i++) {
-					if (t > _maxDistance || t >= depth) {
+				for (int i = 0; i < maxIterations; i++) {
+					if (t > maxDistance || t >= depth) {
 						// environment
-						result = fixed4(rd, 0);
+						hit = false;
 						break;
 					}
 
-					float3 p = ro + rd * t;
+					p = ro + rd * t;
 					// check for hit in distance field
 					float d = distanceField(p);
 					// we have hit something
-					if (d < 0.01) {
-						// shading
-						float3 n = getNormal(p);
-						float light = dot(-_LightDir, n);
-
-						
-						result = fixed4(_mainColor.rgb * light,1);
+					if (d < _Accuracy) {
+						hit = true;
 						break;
 					}
-
 					t += d;
 				}
-
-				return result;
+				return hit;
 			}
 
 			fixed4 frag(v2f i) : SV_Target
@@ -131,7 +221,43 @@
 				fixed3 col = tex2D(_MainTex, i.uv);
 				float3 rayDirection = normalize(i.ray.xyz);
 				float3 rayOrigin = _WorldSpaceCameraPos;
-				fixed4 result = raymarching(rayOrigin, rayDirection, depth);
+				fixed4 result;
+				float3 hitPosition;
+
+				bool hit = raymarching(rayOrigin, rayDirection, depth, _MaxDistance, _MaxIterations, hitPosition);
+				if (hit) {
+					// shading
+					float3 n = getNormal(hitPosition);
+					float3 s = Shading(hitPosition, n);
+					result = fixed4(s, 1);
+					
+					// reflection
+					result += fixed4(texCUBE(_ReflectionCube, n).rgb * _EnvReflIntensity * _ReflectionIntensity, 0);
+					if (_ReflectionCount > 0) {
+						rayDirection = normalize(reflect(rayDirection, n));
+						rayOrigin = hitPosition + (rayDirection * 0.01);
+						hit = raymarching(rayOrigin, rayDirection, _MaxDistance, _MaxDistance * 0.5, _MaxIterations / 2, hitPosition);
+						if (hit) {
+							float3 n = getNormal(hitPosition);
+							float3 s = Shading(hitPosition, n);
+							result += fixed4(s * _ReflectionIntensity, 0);
+							if (_ReflectionCount > 1) {
+								rayDirection = normalize(reflect(rayDirection, n));
+								rayOrigin = hitPosition + (rayDirection * 0.01);
+								hit = raymarching(rayOrigin, rayDirection, _MaxDistance, _MaxDistance * 0.25, _MaxIterations / 4, hitPosition);
+								if (hit) {
+									float3 n = getNormal(hitPosition);
+									float3 s = Shading(hitPosition, n);
+									result += fixed4(s * _ReflectionIntensity * 0.5, 0);
+								}
+							}
+						}
+					}
+				}
+				else {
+					result = fixed4(0, 0, 0, 0);
+				}
+
 				return fixed4(col * (1.0 - result.w) + result.xyz * result.w,1.0);
             }
             ENDCG

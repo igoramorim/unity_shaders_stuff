@@ -37,7 +37,7 @@ MonoBehaviour:
   m_Name: Movie
   m_EditorClassIdentifier: 
   enabled: 1
-  take: 17
+  take: 19
   captureEveryNthFrame: 1
   fileNameGenerator:
     m_Path:
@@ -49,7 +49,7 @@ MonoBehaviour:
   videoBitRateMode: 2
   captureAlpha: 0
   m_ImageInputSelector:
-    m_Selected: cameraInputSettings
+    m_Selected: gameViewInputSettings
     gameViewInputSettings:
       allowTransparency: 0
       m_OutputResolution:
@@ -121,8 +121,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e435bf89a8bb0bf4abee94a2cc516927, type: 3}
   m_Name: GIF Animation
   m_EditorClassIdentifier: 
-  enabled: 1
-  take: 2
+  enabled: 0
+  take: 3
   captureEveryNthFrame: 1
   fileNameGenerator:
     m_Path:

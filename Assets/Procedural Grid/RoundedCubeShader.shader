@@ -1,4 +1,4 @@
-﻿Shader "Custom/RoundedCubeShader"
+﻿Shader "Igor/RoundedCubeShader"
 {
     Properties
     {

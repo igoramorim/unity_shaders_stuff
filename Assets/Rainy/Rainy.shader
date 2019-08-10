@@ -1,4 +1,4 @@
-﻿Shader "Unlit/Rainy"
+﻿Shader "Igor/Rainy"
 {
     Properties
     {

@@ -1,10 +1,14 @@
-﻿Shader "MyShaders/Mandelbrot"
+﻿Shader "Igor/Mandelbrot"
 {
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
 		_Area("Area", vector) = (0, 0, 4, 4)
 		_Angle("Angle", range(-3.1415, 3.1415)) = 0
+		_MaxIter("Max Iter", float) = 255
+		_Color("Color", range(0, 1)) = 1
+		_Repeat("Repeat", float) = 1
+		_Speed("Speed", float) = 1
     }
     SubShader
     {
@@ -40,7 +44,7 @@
             }
 
 			float4 _Area;
-			float _Angle;
+			float _Angle, _MaxIter, _Color, _Repeat, _Speed;
             sampler2D _MainTex;
 
 			float2 rot(float2 p, float2 pivot, float a) {
@@ -56,17 +60,41 @@
 
             fixed4 frag (v2f i) : SV_Target
             {
-				float2 c = _Area.xy + (i.uv -.5) * _Area.zw;
+				float2 uv = i.uv - .5;
+				// mirror the view
+				// uncomment to shift to original view
+				// uv = abs(uv);
+				float2 c = _Area.xy + uv * _Area.zw;
 				c = rot(c, _Area.xy, _Angle);
+
+				// escape radius
+				float r = 20;
+				float r2 = r * r;
+
 				float2 z;
 				float iter;
 
-				for (iter = 0; iter < 255; iter++) {
+				for (iter = 0; iter < _MaxIter; iter++) {
 					z = float2(z.x*z.x-z.y*z.y, 2*z.x*z.y) + c;
-					if (length(z) > 2) break;
+					if (length(z) > r) break;
 				}
 
-                return iter / 255;
+				if (iter > _MaxIter) return 0;
+
+				// distance from origin
+				float dist = length(z);
+				// linear interpolation
+				float fracIter = (dist - r) / (r2 - r);
+				// double exponential interpolation
+				fracIter = log2( log(dist) / log(r) ) - 1;
+
+				iter -= fracIter;
+
+				float m = sqrt(iter / _MaxIter);
+
+				float4 col = tex2D(_MainTex, float2(m * _Repeat + _Time.y * _Speed, _Color));
+				
+				return col;
             }
             ENDCG
         }

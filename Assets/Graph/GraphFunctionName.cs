@@ -12,5 +12,6 @@ public enum GraphFunctionName {
     Sphere,
     SphereAnimated,
     Torus,
-    TorusAnimated
+    TorusAnimated,
+    Teste1
 }

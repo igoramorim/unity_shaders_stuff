@@ -23,7 +23,8 @@ public class Graph : MonoBehaviour {
         Sphere,
         SphereAnimated,
         Torus,
-        TorusAnimated
+        TorusAnimated,
+        Teste1
     };
 
     // Use this for initialization
@@ -134,7 +135,7 @@ public class Graph : MonoBehaviour {
         float s = Mathf.Cos(Mathf.PI * 0.5f * v);
 
         p.x = s * Mathf.Sin(Mathf.PI * u);
-        p.y = Mathf.Sin(Mathf.PI * 0.5f * v); ;
+        p.y = Mathf.Sin(Mathf.PI * 0.5f * v);
         p.z = s * Mathf.Cos(Mathf.PI * u);
 
         return p;
@@ -149,7 +150,7 @@ public class Graph : MonoBehaviour {
         float s = r * Mathf.Cos(Mathf.PI * 0.5f * v);
 
         p.x = s * Mathf.Sin(Mathf.PI * u);
-        p.y = r * Mathf.Sin(Mathf.PI * 0.5f * v); ;
+        p.y = r * Mathf.Sin(Mathf.PI * 0.5f * v);
         p.z = s * Mathf.Cos(Mathf.PI * u);
 
         return p;
@@ -179,6 +180,18 @@ public class Graph : MonoBehaviour {
         p.x = s * Mathf.Sin(Mathf.PI * u);
         p.y = r2 * Mathf.Sin(Mathf.PI * v);
         p.z = s * Mathf.Cos(Mathf.PI * u);
+
+        return p;
+    }
+
+    static Vector3 Teste1(float u, float v, float t) {
+        Vector3 p;
+
+        float s = Mathf.Cos(Mathf.PI * 0.5f * v);
+
+        p.x = s * Mathf.Sin(Mathf.PI * u + Mathf.Sin(s + t + Mathf.Cos(Mathf.PI * v - Mathf.Sin(t + v * 2.5f))));
+        p.y = Mathf.Sin(Mathf.PI * 0.5f * v) + Mathf.Cos(v + t + Mathf.Sin(p.x + t * 1.5f)) * 0.5f;
+        p.z = s * Mathf.Cos(Mathf.PI * u + Mathf.Cos(p.y + t));
 
         return p;
     }

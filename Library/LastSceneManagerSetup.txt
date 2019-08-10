@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/Raymarching/raymarching.unity
+- path: Assets/Shadertoy/MyShaderScene.unity
   isLoaded: 1
   isActive: 1
