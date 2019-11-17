@@ -248,6 +248,7 @@ MonoBehaviour:
   rightCode: +
   ruleACode: X
   ruleBCode: Y
+  line: {fileID: 0}
 --- !u!4 &72463278
 Transform:
   m_ObjectHideFlags: 0
