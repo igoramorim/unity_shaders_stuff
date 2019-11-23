@@ -3,6 +3,7 @@
 	Properties
 	{
 		_MainTex("Texture", 2D) = "white" {}
+		_Audio("Audio", float) = 0
 	}
 		SubShader
 	{
@@ -37,6 +38,7 @@
 
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
+			float _Audio;
 
 			v2f vert(appdata v)
 			{
@@ -87,7 +89,7 @@
 
 				float rInv = 1. / length(uv);
 				uv = uv * rInv - float2(rInv + 2.*mod(_Time.y, 5000.), 1.);
-				uv += sin(uv.y + sin(_Time.y) + sin(uv.y + _Time.y * .5) + iqnoise(5.*uv, 1., 1.));
+				uv += sin(uv.y + sin(_Time.y) + sin(uv.y + _Time.y * _Audio) + iqnoise(5.*uv, 1., 1.));
 
 				float3 color = float3(0.516, 0.674, 0.316*rInv);
 				color = color * (iqnoise(5.*uv, 1., 1.) + 0.240*rInv);

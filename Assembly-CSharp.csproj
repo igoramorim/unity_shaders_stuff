@@ -65,6 +65,8 @@
     <Compile Include="Assets\Atomic Nucleus\FPSDisplay.cs" />
     <Compile Include="Assets\Atomic Nucleus\Nucleon.cs" />
     <Compile Include="Assets\Atomic Nucleus\NucleonSpawner.cs" />
+    <Compile Include="Assets\Audio Processor\AudioProcessor.cs" />
+    <Compile Include="Assets\Audio Processor\AudioSpectrum.cs" />
     <Compile Include="Assets\Circle Tangent\Scripts\CircleTangent.cs" />
     <Compile Include="Assets\Circle Tangent\Scripts\TangentCircles.cs" />
     <Compile Include="Assets\Fractal\Fractal.cs" />
