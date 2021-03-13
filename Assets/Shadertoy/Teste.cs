@@ -20,7 +20,7 @@ public class Teste : MonoBehaviour {
     private void FixedUpdate() {
         float scale = 0.0f;
         scale = spectrum.MeanLevels[0];
-        Debug.Log(scale + " - " + scale * 20.0f);
+        //Debug.Log(scale + " - " + scale * 20.0f);
         mat.SetFloat("_Audio", scale);
     }
 

@@ -319,6 +319,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   numberOfSamples: 1024
-  bandType: 3
+  bandType: 0
   fallSpeed: 0.08
-  sensibility: 8
+  sensibility: 20
