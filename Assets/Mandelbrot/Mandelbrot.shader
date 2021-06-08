@@ -1,4 +1,5 @@
-﻿Shader "Igor/Mandelbrot"
+﻿
+ Shader "Igor/Mandelbrot"
 {
     Properties
     {
@@ -14,7 +15,9 @@
     {
         // No culling or depth
         Cull Off ZWrite Off ZTest Always
-
+         
+	//LOD for scene
+	LOD 100
         Pass
         {
             CGPROGRAM
@@ -47,6 +50,7 @@
 			float _Angle, _MaxIter, _Color, _Repeat, _Speed;
             sampler2D _MainTex;
 
+			//Rotational Area Change
 			float2 rot(float2 p, float2 pivot, float a) {
 				float s = sin(a);
 				float c = cos(a);
@@ -59,7 +63,8 @@
 			}
 
             fixed4 frag (v2f i) : SV_Target
-            {
+            {			
+	    			
 				float2 uv = i.uv - .5;
 				// mirror the view
 				// uncomment to shift to original view
@@ -73,12 +78,12 @@
 
 				float2 z;
 				float iter;
-
+				//Mandelbrot function interpolation
 				for (iter = 0; iter < _MaxIter; iter++) {
 					z = float2(z.x*z.x-z.y*z.y, 2*z.x*z.y) + c;
 					if (length(z) > r) break;
 				}
-
+				//Avoid excess iterations
 				if (iter > _MaxIter) return 0;
 
 				// distance from origin
@@ -89,9 +94,10 @@
 				fracIter = log2( log(dist) / log(r) ) - 1;
 
 				iter -= fracIter;
-
+				
 				float m = sqrt(iter / _MaxIter);
 
+					//can have special effect using sin(_Time.y)
 				float4 col = tex2D(_MainTex, float2(m * _Repeat + _Time.y * _Speed, _Color));
 				
 				return col;
